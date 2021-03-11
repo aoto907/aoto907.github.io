@@ -1,0 +1,50 @@
+## Markdown
+- $n \times n$の2次元のフィールド（セル）を準備：N_field
+- 前回のライフゲームと同様に，セルの境界は周期境界
+- クラスPersonから$m$個のインスタンスを作成し，フィールドにランダムに配置
+- 初期感染者の割合：P_rate
+    - $m$個のインスタンスのうち，割合(1-P_rate)は青（非感染，Negative），残りのP_rateは赤（感染，Positive）
+- ステップ数：T_max
+- ステップの移動距離：Speed_person
+    - i, jのセルから以下の範囲で移動（乱数を発生させ，0からSpeed_personの範囲で動く）
+    - x方向：i - Speed_person から i + Speed_personの範囲
+    - j方向：j - Speed_person から j + Speed_personの範囲
+    - 例えば，Speed_person = 1の場合は，ムーア近傍もしくは，動かない．
+- 感染から回復までの時間：T_recover
+- 感染後の死亡割合：D_rate
+- 感染半径（セル数）：R_infection
+    - R_infection = 1の場合：ムーア近傍
+    - R_infection = 2の場合：ムーア近傍のもう1セル外側まで
+    - R_infection = 3の場合：ムーア近傍のもう2セル外側まで
+    - 感染率を感染者との位置にによって変化する
+        -  ムーア近傍の場合は、全員感染し潜伏期間は短い
+        -  ムーア近傍のもう1セル外側の場合は、1/2で感染し潜伏期間は程よく長い
+        -  ムーア近傍のもう2セル外側の場合は、1/5で感染し潜伏期間は長い
+    -  陽性率
+        - <span style="color:red; font-size:200%;"> $\frac{陽性判明数の移動平均}{（陽性判明数＋陰性判明数）の移動平均}$
+        - 新型コロナウイルス感染症のPCR検査の陽性率　https://www.fukushihoken.metro.tokyo.lg.jp/iryo/kansen/youseiritsu.html
+        
+- クラスPersonの初期化メソッド
+    - self.status：感染ステータス
+        - Negative, Positive, Death, Recover
+    - self.color：グラフの色
+        - blue, red, black, green
+    - self.timer：感染からの経過ステップ
+    - self.x, self.y：インスタンスのx座標，y座標
+    - self.old：感染年齢を変化（年齢が高くになるにつれ「死亡率」、「再感染」、「感染率」が向上する）若年層
+        -  死亡率：若年層 < 中年層 < 高齢層
+        -  感染率：高齢層 < 中年層 < 若年層
+        
+- クラスのメソッド
+    - update_xy
+        - 次のステップでの座標を決定するメソッド：ステータスが、NegativeとPositiveまたはRecover
+    - stop_xy
+        - その位置に留まるに留まる場合：ステータスが、DeathとPositive
+    - check_infection
+        - R_infection内のセルに感染者有無の確認をし，次のステップのstatusを決定するメソッド
+    - check_recover
+        - 感染からの経過時間を確認し，Positive, Recover, Deathを決定するメソッド
+        -  中年層であるほどに回復前に外に飛び出す確率は高くなる。
+    - confirmation_of_infection：感染確認
+        - 潜伏期間1~14日（平均5日）で潜伏期間が長いほどに「重症率」が高くなる
+        - 感染が確認されたのち、感染状態を「Negative」と「Positive」に分ける。
